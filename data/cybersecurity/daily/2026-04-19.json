@@ -1,0 +1,81 @@
+{
+  "category": "Cybersecurity",
+  "type": "daily",
+  "date": "2026-04-19",
+  "total_posts": 5,
+  "subreddits_scraped": [
+    "r/netsec",
+    "r/cybersecurity",
+    "r/AskNetsec",
+    "r/hacking",
+    "r/blueteamsec",
+    "r/malware"
+  ],
+  "posts": [
+    {
+      "id": "1spm69w",
+      "title": "Is it really that bad?",
+      "subreddit": "r/cybersecurity",
+      "author": "AdItchy9840",
+      "score": 72,
+      "upvote_ratio": 0.84,
+      "num_comments": 54,
+      "url": "https://www.reddit.com/r/cybersecurity/comments/1spm69w/is_it_really_that_bad/",
+      "body": "Hey everyone, I’ve been seeing a ton of posts lately claiming the job market is at an absolute standstill and that landing a role in cyber is basically impossible right now. At the same time, I keep hearing about the massive talent gap and the desperate need for professionals. I’m right on the brink of being ready to apply, and honestly, these extreme posts are starting to get in my head. I’ve put...",
+      "flair": "Career Questions &amp; Discussion",
+      "created_utc": 1776583475
+    },
+    {
+      "id": "1spfzdg",
+      "title": "Cybersecurity Technical Writer badly needing to pivot",
+      "subreddit": "r/cybersecurity",
+      "author": "buzzlightyear0473",
+      "score": 31,
+      "upvote_ratio": 0.86,
+      "num_comments": 27,
+      "url": "https://www.reddit.com/r/cybersecurity/comments/1spfzdg/cybersecurity_technical_writer_badly_needing_to/",
+      "body": "I’ve been a technical writer at some of the biggest companies in cybersecurity for 5 years, primarily writing software docs for identity and PKI. My current role is being heavily automated and layoffs are happening, not to mention my team was acquired a couple months ago. My companies all-hands brags about most docs being ai generated as a goal and that it currently handles most already with high ...",
+      "flair": "Personal Support &amp; Help!",
+      "created_utc": 1776563983
+    },
+    {
+      "id": "1spvwqs",
+      "title": "Vercel Says Internal Systems Hit in Breach",
+      "subreddit": "r/cybersecurity",
+      "author": "YogiBerra88888",
+      "score": 20,
+      "upvote_ratio": 0.9,
+      "num_comments": 0,
+      "url": "https://www.reddit.com/r/cybersecurity/comments/1spvwqs/vercel_says_internal_systems_hit_in_breach/",
+      "external_url": "https://decipher.sc/2026/04/19/vercel-says-internal-systems-hit-in-breach/",
+      "flair": "News - Breaches &amp; Ransoms",
+      "created_utc": 1776612170
+    },
+    {
+      "id": "1sps9r2",
+      "title": "SOC Projects",
+      "subreddit": "r/cybersecurity",
+      "author": "guywithnodegree",
+      "score": 20,
+      "upvote_ratio": 0.86,
+      "num_comments": 15,
+      "url": "https://www.reddit.com/r/cybersecurity/comments/1sps9r2/soc_projects/",
+      "body": "What are some really good projects to put on resume (I’m about to apply for job). After building project whats next??",
+      "flair": "Career Questions &amp; Discussion",
+      "created_utc": 1776603440
+    },
+    {
+      "id": "1spov5s",
+      "title": "Vendor refuses CVEs for third-party findings. Anything you can do?",
+      "subreddit": "r/cybersecurity",
+      "author": "Warm_Rhubarb_3092",
+      "score": 18,
+      "upvote_ratio": 0.85,
+      "num_comments": 18,
+      "url": "https://www.reddit.com/r/cybersecurity/comments/1spov5s/vendor_refuses_cves_for_thirdparty_findings/",
+      "body": "As part of a security assessment, a client asked our team to test a well-known SaaS application they were using. During the engagement, we identified several vulnerabilities. In accordance with their contractual obligations, the client reported these issues directly to the SaaS vendor. Since we were interested in obtaining CVEs for the discovered vulnerabilities, we asked the client to check with ...",
+      "flair": "Business Security Questions &amp; Discussion",
+      "created_utc": 1776592985
+    }
+  ]
+}

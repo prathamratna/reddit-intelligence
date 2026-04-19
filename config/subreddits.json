@@ -1,0 +1,32 @@
+{
+  "categories": {
+    "ai_claude": {
+      "label": "AI & Claude",
+      "subreddits": ["ClaudeAI", "artificial", "MachineLearning", "LocalLLaMA", "singularity", "OpenAI", "ChatGPT"],
+      "daily_limit": 5,
+      "weekly_limit": 10,
+      "weekly_comments": 5
+    },
+    "personal_branding": {
+      "label": "Personal Branding & Marketing",
+      "subreddits": ["personalbranding", "Entrepreneur", "marketing", "LinkedInTips", "content_marketing", "GrowthHacking"],
+      "daily_limit": 5,
+      "weekly_limit": 10,
+      "weekly_comments": 5
+    },
+    "vc_funding": {
+      "label": "VC & Funding",
+      "subreddits": ["venturecapital", "startups", "ycombinator", "IndiaStartups", "smallbusiness"],
+      "daily_limit": 5,
+      "weekly_limit": 10,
+      "weekly_comments": 5
+    },
+    "cybersecurity": {
+      "label": "Cybersecurity",
+      "subreddits": ["netsec", "cybersecurity", "AskNetsec", "hacking", "blueteamsec", "malware"],
+      "daily_limit": 5,
+      "weekly_limit": 10,
+      "weekly_comments": 5
+    }
+  }
+}

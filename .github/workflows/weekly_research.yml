@@ -1,0 +1,35 @@
+name: Weekly Reddit Research
+
+on:
+  schedule:
+    - cron: "0 1 * * 0"  # 01:00 UTC every Sunday = 06:30 IST Sunday
+  workflow_dispatch:      # manual trigger anytime
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install httpx
+
+      - name: Run weekly scraper
+        run: python scrapers/weekly_scraper.py
+
+      - name: Commit and push data
+        run: |
+          git config user.name "reddit-intelligence-bot"
+          git config user.email "bot@noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "data: weekly research $(date -u +%Y-%m-%d)"
+          git push
