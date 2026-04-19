@@ -2,7 +2,7 @@
   "category": "Personal Branding & Marketing",
   "type": "daily",
   "date": "2026-04-19",
-  "total_posts": 3,
+  "total_posts": 0,
   "subreddits_scraped": [
     "r/personalbranding",
     "r/Entrepreneur",
@@ -11,45 +11,5 @@
     "r/content_marketing",
     "r/GrowthHacking"
   ],
-  "posts": [
-    {
-      "id": "1sptgta",
-      "title": "Having a had time starting over",
-      "subreddit": "r/Entrepreneur",
-      "author": "FlimsyPresentation36",
-      "score": 17,
-      "upvote_ratio": 0.95,
-      "num_comments": 41,
-      "url": "https://www.reddit.com/r/Entrepreneur/comments/1sptgta/having_a_had_time_starting_over/",
-      "body": "I've been thinking about how successful people find their thing, and I'm seeing two completely different patterns. Some people just throw shit at the wall relentlessly. They're not waiting for the perfect idea, they're trying things, iterating, failing, trying again. They find niches and make something work through pure volume and persistence. But then there's another set of successful people who ...",
-      "flair": "Young Entrepreneur",
-      "created_utc": 1776606479
-    },
-    {
-      "id": "1spqrcc",
-      "title": "Running a software agency and a SaaS at the same time - how I track everything without losing my mind",
-      "subreddit": "r/Entrepreneur",
-      "author": "Frequent-Football984",
-      "score": 12,
-      "upvote_ratio": 0.8,
-      "num_comments": 45,
-      "url": "https://www.reddit.com/r/Entrepreneur/comments/1spqrcc/running_a_software_agency_and_a_saas_at_the_same/",
-      "body": "I run a software agency with real clients and I build a SaaS product solo. Both at the same time. Some weeks one eats the other, most weeks they fight for attention. Nine years into this.   Here's what actually works for me, after a lot of things that didn't. The common advice is \"time block it\" or \"use different tools for different sides of your work.\" I tried that. It falls apart the second real...",
-      "flair": "Best Practices",
-      "created_utc": 1776599170
-    },
-    {
-      "id": "1spgdlq",
-      "title": "HubSpot getting into AEO is worth paying attention to as a category signal",
-      "subreddit": "r/content_marketing",
-      "author": "mahearty",
-      "score": 10,
-      "upvote_ratio": 0.82,
-      "num_comments": 15,
-      "url": "https://www.reddit.com/r/content_marketing/comments/1spgdlq/hubspot_getting_into_aeo_is_worth_paying/",
-      "body": "HubSpot entering the answer engine optimization space is worth noting as a category signal, regardless of what you think about the tool itself. When a platform with that kind of distribution moves into a niche, it shifts from specialist territory to the mainstream market in a way that tends to accelerate category investment and definition across the board. HubSpot now lets you track where your bra...",
-      "flair": "Discussion",
-      "created_utc": 1776565150
-    }
-  ]
+  "posts": []
 }

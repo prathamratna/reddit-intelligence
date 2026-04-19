@@ -2,125 +2,13 @@
   "category": "VC & Funding",
   "type": "daily",
   "date": "2026-04-19",
-  "total_posts": 9,
+  "total_posts": 0,
   "subreddits_scraped": [
     "r/venturecapital",
     "r/startups",
     "r/ycombinator",
     "r/IndiaStartups",
-    "r/entrepreneurindia",
     "r/smallbusiness"
   ],
-  "posts": [
-    {
-      "id": "1sp87q9",
-      "title": "Street vendor set up across from my family’s small grocery store — is there anything we can actually do?",
-      "subreddit": "r/smallbusiness",
-      "author": "Biker1371",
-      "score": 89,
-      "upvote_ratio": 0.8,
-      "num_comments": 139,
-      "url": "https://www.reddit.com/r/smallbusiness/comments/1sp87q9/street_vendor_set_up_across_from_my_familys_small/",
-      "body": "My family runs a small neighborhood grocery store in Los Angeles, and staring this week, there is a street vendor who sets up a tent directly across from our store on the sidewalk. They sell similar items to what we sell — fresh fruit, household/dollar items like Tupperware, etc. I’ve looked into the local rules, and from what I can tell, they likely aren’t doing anything illegal. They probably ha...",
-      "created_utc": 1776543437
-    },
-    {
-      "id": "1spb7kr",
-      "title": "does anyone else feel busy all day but still get nothing done?",
-      "subreddit": "r/smallbusiness",
-      "author": "HistorianAdorable405",
-      "score": 34,
-      "upvote_ratio": 0.88,
-      "num_comments": 44,
-      "url": "https://www.reddit.com/r/smallbusiness/comments/1spb7kr/does_anyone_else_feel_busy_all_day_but_still_get/",
-      "body": "I swear half my day goes like this open email → reply → remember something → open docs → update → go back → check something else → open another tab repeat this 20 times and by the end of the day it feels like i worked a lot but didn’t really finish anything everything is spread across tools and i’m just jumping between them trying to keep up lately i’ve been trying to simplify this because it’s ho...",
-      "created_utc": 1776550780
-    },
-    {
-      "id": "1spr3p8",
-      "title": "The 10 things I wish I knew when starting my 1st startup [I will not promote]",
-      "subreddit": "r/startups",
-      "author": "balubala1",
-      "score": 28,
-      "upvote_ratio": 0.84,
-      "num_comments": 32,
-      "url": "https://www.reddit.com/r/startups/comments/1spr3p8/the_10_things_i_wish_i_knew_when_starting_my_1st/",
-      "body": "# 1. Investors don’t matter and have no clue Most of them have never built anything. Don’t chase their appreciation, it is worth nothing. Your customers’ appreciation is worth everything. Bootstrap! # 2. Landing page doesn’t matter Your first website visitors will come from cold outreach, a blog, a post -- which means they’re coming with intent already. No need to convert them a 2nd time. # 3. It’...",
-      "flair": "I will not promote",
-      "created_utc": 1776600174
-    },
-    {
-      "id": "1spih5z",
-      "title": "Term sheet secured, but lead VC wants us to find a co-investor through our own network. How do we break in?- i will not promote",
-      "subreddit": "r/startups",
-      "author": "Disastrous_List_2176",
-      "score": 22,
-      "upvote_ratio": 0.84,
-      "num_comments": 51,
-      "url": "https://www.reddit.com/r/startups/comments/1spih5z/term_sheet_secured_but_lead_vc_wants_us_to_find_a/",
-      "body": "**Current Status:** We’re raising a co-investment round and have about 50% filled: • **Term sheet** from a VC (introduced by our Investment Banker) • **Interest** from SFOs (also via our IB) • **Committed capital** from HNIs (via our alumni network) We have \\~50% left to close. **The Problem:** Our lead VC insists we bring another VC onboard through our own network, not our IB, to prove our founde...",
-      "flair": "I will not promote",
-      "created_utc": 1776571361
-    },
-    {
-      "id": "1spnyzr",
-      "title": "Small biz here, 32 employees. Stumbled into a way to get 5x the use out of every training video we record.",
-      "subreddit": "r/smallbusiness",
-      "author": "PerfectChard6900",
-      "score": 21,
-      "upvote_ratio": 0.65,
-      "num_comments": 14,
-      "url": "https://www.reddit.com/r/smallbusiness/comments/1spnyzr/small_biz_here_32_employees_stumbled_into_a_way/",
-      "body": "The idea: every training video can serve 5 purposes with almost no extra work. You just have to think about it before you hit record. Example. We recorded a 6 minute video on how we handle customer refunds. That one recording became: Part of new hire onboarding. Obviously. The written SOP. We just transcribed the steps and cleaned up the language. A help article we now send customers who ask about...",
-      "created_utc": 1776589788
-    },
-    {
-      "id": "1sp8aen",
-      "title": "finally hit $1k in revenue after a complete nightmare that almost ruined my business",
-      "subreddit": "r/ycombinator",
-      "author": "Johnjohnson_69",
-      "score": 18,
-      "upvote_ratio": 0.91,
-      "num_comments": 13,
-      "url": "https://www.reddit.com/r/ycombinator/comments/1sp8aen/finally_hit_1k_in_revenue_after_a_complete/",
-      "body": "this is going to be long. apologies. i don't really have anyone i can say this stuff to without sounding like i'm either bragging or asking for sympathy so here we go. i started this thing about two years ago with a cofounder. in my gut i knew by like day three that it wasn't going to work. we didn't share the same vision for the product, the energy was off in a way i couldn't quite describe at th...",
-      "created_utc": 1776543611
-    },
-    {
-      "id": "1sp6cxv",
-      "title": "Solo consultant launching a website, looking for platform recommendations",
-      "subreddit": "r/smallbusiness",
-      "author": "Ithius27",
-      "score": 14,
-      "upvote_ratio": 0.95,
-      "num_comments": 79,
-      "url": "https://www.reddit.com/r/smallbusiness/comments/1sp6cxv/solo_consultant_launching_a_website_looking_for/",
-      "body": "Starting a boutique operations consulting firm and need to get a simple website up. Looking for peer advice from folks who have done this themselves. My situation: one client so far, others will come through referrals or cold outreach. Not running ads, not selling a product, not building a funnel. Not technical, and I'm the only person in the business. What I need: * 4 or 5 pages (home, services, ...",
-      "created_utc": 1776539117
-    },
-    {
-      "id": "1spf8hh",
-      "title": "Is it me or was Startup School acceptrance % a lot higher this year",
-      "subreddit": "r/ycombinator",
-      "author": "SnooMarzipans6759",
-      "score": 13,
-      "upvote_ratio": 0.88,
-      "num_comments": 23,
-      "url": "https://www.reddit.com/r/ycombinator/comments/1spf8hh/is_it_me_or_was_startup_school_acceptrance_a_lot/",
-      "body": "literally everyone got in 💀",
-      "created_utc": 1776561814
-    },
-    {
-      "id": "1spah5w",
-      "title": "Be careful with a company named BusinessWebsite Inc",
-      "subreddit": "r/smallbusiness",
-      "author": "Wooden_Abalone4374",
-      "score": 13,
-      "upvote_ratio": 0.86,
-      "num_comments": 13,
-      "url": "https://www.reddit.com/r/smallbusiness/comments/1spah5w/be_careful_with_a_company_named_businesswebsite/",
-      "body": "On 12/3/2024 I hired a company named Business website Inc to create a website for a medical staffing business I was starting, I paid them $5237.00, to begin the work on my website and then I made an additional payment on 12/17/2024 for $4617.00 for a total of $9854.00 This was supposed to provide me with an exceptional website with all upgraded development, designs,  create the front and backend i...",
-      "created_utc": 1776548891
-    }
-  ]
+  "posts": []
 }
