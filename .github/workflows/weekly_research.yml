@@ -2,14 +2,15 @@ name: Weekly Reddit Research
 
 on:
   schedule:
-    - cron: "0 1 * * 0"  # 01:00 UTC every Sunday = 06:30 IST Sunday
-  workflow_dispatch:      # manual trigger anytime
+    - cron: "0 1 * * 0"   # 01:00 UTC Sunday = 06:30 IST Sunday
+  workflow_dispatch:        # manual trigger anytime
 
 jobs:
   research:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write   # push data + digests to repo
+      issues: write     # create GitHub Issue with digest
 
     steps:
       - name: Checkout repo
@@ -21,18 +22,33 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install praw
+        run: pip install composio-core
 
-      - name: Run weekly scraper
+      - name: Run weekly research scraper
         env:
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
         run: python scrapers/weekly_scraper.py
 
-      - name: Commit and push data
+      - name: Commit data and digests to repo
         run: |
           git config user.name "reddit-intelligence-bot"
           git config user.email "bot@noreply.github.com"
-          git add data/
+          git add data/ digests/
           git diff --cached --quiet || git commit -m "data: weekly research $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Create GitHub Issue labels (idempotent)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "weekly-research" --color "b60205" --description "Weekly Reddit deep research" 2>/dev/null || true
+
+      - name: Create GitHub Issue with weekly research digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIGEST_FILE="digests/weekly/$(date -u +%Y-%m-%d).md"
+          gh issue create \
+            --title "Weekly Reddit Research | $(date -u +%Y-%m-%d)" \
+            --body-file "$DIGEST_FILE" \
+            --label "weekly-research"

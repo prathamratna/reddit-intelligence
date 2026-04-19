@@ -1,99 +1,133 @@
 """
-Weekly scraper: top posts of the week + comments + cross-post patterns.
-Runs via GitHub Actions every Sunday at 01:00 UTC (06:30 IST).
-Requires: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET env vars.
+Weekly scraper: deep research via Composio Reddit API.
+Runs via GitHub Actions at 01:00 UTC Sundays (06:30 IST).
+
+Flow:
+  1. Top posts of the week per subreddit (scored + filtered)
+  2. Top comments fetched for high-engagement posts
+  3. Targeted search queries from research_plan.json (intent-rich signal)
+  4. Generate weekly digest (~1,200 tokens) for GitHub Issue
 """
 
 import json
 import sys
 import os
 from datetime import datetime, timezone
-from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from scrapers.reddit_client import get_reddit, get_top_posts, get_post_comments
-from processors.cleaner import clean_post, clean_comment
 
-CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "subreddits.json")
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+from scrapers.reddit_client import get_top_posts, search_posts, get_post_comments
+from processors.cleaner import clean_post
+from processors.scorer import score_post
+from processors.digest import generate_weekly_digest
 
-STOPWORDS = {"about", "with", "this", "that", "from", "have", "will", "your", "their", "been", "what", "when", "which", "just", "there", "they", "been", "would", "could", "should"}
+CONFIG_PATH        = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "subreddits.json")
+RESEARCH_PLAN_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "research_plan.json")
+DATA_DIR           = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+DIGEST_DIR         = os.path.join(os.path.dirname(os.path.dirname(__file__)), "digests", "weekly")
 
-
-def extract_patterns(posts: list[dict]) -> dict:
-    words = Counter()
-    for post in posts:
-        for word in post.get("title", "").lower().split():
-            if len(word) > 4 and word not in STOPWORDS:
-                words[word] += 1
-
-    by_comments = sorted(posts, key=lambda x: x.get("num_comments", 0), reverse=True)
-    by_score = sorted(posts, key=lambda x: x.get("score", 0), reverse=True)
-
-    return {
-        "top_keywords": [w for w, _ in words.most_common(12)],
-        "avg_score": int(sum(p.get("score", 0) for p in posts) / max(len(posts), 1)),
-        "high_consensus": len([p for p in posts if p.get("upvote_ratio", 0) >= 0.92]),
-        "controversial": len([p for p in posts if p.get("upvote_ratio", 0) < 0.65]),
-        "most_discussed_title": by_comments[0].get("title") if by_comments else None,
-        "most_discussed_url": by_comments[0].get("url") if by_comments else None,
-        "highest_scored_title": by_score[0].get("title") if by_score else None,
-        "highest_scored_url": by_score[0].get("url") if by_score else None,
-    }
+# Pull comments only for posts above this engagement score — avoids wasting API calls
+COMMENTS_ENGAGEMENT_THRESHOLD = 150
 
 
 def run():
-    reddit = get_reddit()
-    with open(CONFIG_PATH) as f:
+    with open(CONFIG_PATH, encoding="utf-8") as f:
         config = json.load(f)
+    with open(RESEARCH_PLAN_PATH, encoding="utf-8") as f:
+        research_plan = json.load(f)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    category_posts: dict = {}
+    search_results: dict = {}
 
+    # -------------------------------------------------------------------------
+    # Part 1: Top posts of the week per subreddit
+    # -------------------------------------------------------------------------
     for category, meta in config["categories"].items():
-        print(f"\n[{category.upper()}] Weekly scrape across {len(meta['subreddits'])} subreddits...")
-        posts = []
+        print(f"\n[{category.upper()}] Weekly top posts...")
+        raw_posts = []
 
         for subreddit in meta["subreddits"]:
             print(f"  -> r/{subreddit}")
-            raw_posts = get_top_posts(reddit, subreddit, time_filter="week", limit=meta["weekly_limit"])
+            posts = get_top_posts(subreddit, time_filter="week", limit=meta["weekly_limit"])
+            raw_posts.extend(posts)
+            print(f"     {len(posts)} fetched")
 
-            for post in raw_posts:
-                if post.score < 20:
-                    continue
+        # Score + filter — all logic in scorer.py, zero Claude tokens
+        scored = []
+        for post in raw_posts:
+            result = score_post(post, category)
+            if result:
+                # Pull top comments for high-engagement posts only
+                eng = result.get("engagement_score", 0)
+                if eng >= COMMENTS_ENGAGEMENT_THRESHOLD and post.get("id"):
+                    print(f"    -> Comments for: {post['title'][:55]}...")
+                    result["comments"] = get_post_comments(post["id"], limit=3)
+                scored.append(clean_post(result))
 
-                raw_comments = []
-                if post.num_comments > 5:
-                    print(f"    +-- comments: {post.title[:55]}")
-                    raw_comments = get_post_comments(post, limit=meta["weekly_comments"])
+        scored.sort(key=lambda x: x.get("engagement_score", 0), reverse=True)
+        category_posts[category] = scored[:5]
 
-                posts.append(clean_post(post, comments=raw_comments if raw_comments else None))
-
-        posts.sort(key=lambda x: x.get("score", 0), reverse=True)
-
-        output = {
-            "category": meta["label"],
-            "type": "weekly",
-            "week_ending": today,
-            "total_posts": len(posts),
-            "subreddits_scraped": [f"r/{s}" for s in meta["subreddits"]],
-            "patterns": extract_patterns(posts),
-            "posts": posts,
-        }
-
-        weekly_dir = os.path.join(DATA_DIR, category, "weekly")
+        # Save to permanent archive
+        weekly_dir  = os.path.join(DATA_DIR, category, "weekly")
+        latest_file = os.path.join(DATA_DIR, category, "latest_weekly.json")
         os.makedirs(weekly_dir, exist_ok=True)
 
-        date_file = os.path.join(weekly_dir, f"{today}.json")
-        latest_file = os.path.join(DATA_DIR, category, "latest_weekly.json")
-
-        with open(date_file, "w", encoding="utf-8") as f:
+        output = {
+            "category":    meta["label"],
+            "type":        "weekly",
+            "week_ending": today,
+            "total_posts": len(scored),
+            "posts":       scored,
+        }
+        with open(os.path.join(weekly_dir, f"{today}.json"), "w", encoding="utf-8") as f:
             json.dump(output, f, indent=2, ensure_ascii=False)
         with open(latest_file, "w", encoding="utf-8") as f:
             json.dump(output, f, indent=2, ensure_ascii=False)
 
-        print(f"  OK {len(posts)} posts saved -> {date_file}")
+        print(f"  OK {len(scored)} posts passed gate -> saved")
 
-    print("\n[DONE] Weekly scrape complete.")
+    # -------------------------------------------------------------------------
+    # Part 2: Search intelligence from research_plan.json
+    # Finds intent-rich discussions that don't always rank as top posts.
+    # -------------------------------------------------------------------------
+    print("\n[SEARCH] Running targeted queries from research_plan.json...")
+
+    for category, plan in research_plan.items():
+        queries   = plan.get("search_queries", [])
+        min_score = plan.get("min_score_search", 10)
+        search_results[category] = {}
+
+        print(f"\n  [{category.upper()}] {len(queries)} queries")
+        for query in queries:
+            print(f"    -> '{query}'")
+            results  = search_posts(query, limit=10, sort="top")
+            filtered = [r for r in results if r.get("score", 0) >= min_score]
+            filtered.sort(key=lambda x: x.get("score", 0), reverse=True)
+            top2 = filtered[:2]
+
+            if top2:
+                search_results[category][query] = top2
+                print(f"       {len(top2)} results kept (score >= {min_score})")
+            else:
+                print(f"       0 results above threshold")
+
+    # -------------------------------------------------------------------------
+    # Generate digest
+    # -------------------------------------------------------------------------
+    os.makedirs(DIGEST_DIR, exist_ok=True)
+    digest_text = generate_weekly_digest(category_posts, search_results, today)
+    digest_file = os.path.join(DIGEST_DIR, f"{today}.md")
+
+    with open(digest_file, "w", encoding="utf-8") as f:
+        f.write(digest_text)
+
+    print(f"\n[DIGEST] Saved -> {digest_file}")
+    print("\n" + "=" * 60)
+    print(digest_text)
+    print("=" * 60)
+
+    print("\n[DONE] Weekly research complete.")
 
 
 if __name__ == "__main__":

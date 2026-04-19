@@ -2,14 +2,15 @@ name: Daily Reddit Scrape
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # 00:00 UTC = 05:30 IST daily
-  workflow_dispatch:      # manual trigger anytime
+    - cron: "0 0 * * *"   # 00:00 UTC = 05:30 IST daily
+  workflow_dispatch:        # manual trigger anytime
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write   # push data + digests to repo
+      issues: write     # create GitHub Issue with digest
 
     steps:
       - name: Checkout repo
@@ -21,18 +22,37 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install praw
+        run: pip install composio-core
 
       - name: Run daily scraper
         env:
-          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
-          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
         run: python scrapers/daily_scraper.py
 
-      - name: Commit and push data
+      - name: Commit data and digests to repo
         run: |
           git config user.name "reddit-intelligence-bot"
           git config user.email "bot@noreply.github.com"
-          git add data/
+          git add data/ digests/
           git diff --cached --quiet || git commit -m "data: daily scrape $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Create GitHub Issue labels (idempotent)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "daily-digest"    --color "0075ca" --description "Daily Reddit intelligence digest" 2>/dev/null || true
+          gh label create "ai-claude"       --color "5319e7" --description "AI & Claude posts"                2>/dev/null || true
+          gh label create "personal-brand"  --color "e4e669" --description "Personal branding posts"          2>/dev/null || true
+          gh label create "vc-funding"      --color "0e8a16" --description "VC & funding posts"               2>/dev/null || true
+          gh label create "cybersecurity"   --color "d93f0b" --description "Cybersecurity posts"              2>/dev/null || true
+
+      - name: Create GitHub Issue with today's digest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIGEST_FILE="digests/daily/$(date -u +%Y-%m-%d).md"
+          gh issue create \
+            --title "Daily Reddit Digest | $(date -u +%Y-%m-%d)" \
+            --body-file "$DIGEST_FILE" \
+            --label "daily-digest,ai-claude,personal-brand,vc-funding,cybersecurity"

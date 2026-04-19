@@ -1,0 +1,49 @@
+{
+  "ai_claude": {
+    "search_queries": [
+      "Claude agent automation workflow",
+      "Claude vs GPT-4 comparison 2026",
+      "Anthropic Claude model limitations",
+      "AI coding assistant productivity",
+      "LLM quality degradation context window",
+      "Claude computer use agentic tasks",
+      "AI replacing jobs automation"
+    ],
+    "min_score_search": 50,
+    "pull_comments_from_top_n": 3
+  },
+  "personal_branding": {
+    "search_queries": [
+      "LinkedIn growth strategy founder 2026",
+      "personal brand content creator monetization",
+      "thought leadership LinkedIn algorithm",
+      "authenticity personal branding social media",
+      "niche down personal brand advice"
+    ],
+    "min_score_search": 5,
+    "pull_comments_from_top_n": 3
+  },
+  "vc_funding": {
+    "search_queries": [
+      "India startup funding 2026",
+      "VC AI startup investment thesis",
+      "pre-seed funding founder mistakes",
+      "YC application rejection lessons",
+      "D2C brand venture capital raise",
+      "bootstrapping vs venture funding"
+    ],
+    "min_score_search": 10,
+    "pull_comments_from_top_n": 3
+  },
+  "cybersecurity": {
+    "search_queries": [
+      "critical vulnerability CVE 2026",
+      "AI security threat startup",
+      "supply chain attack new",
+      "zero day exploit disclosed",
+      "startup security practices essential"
+    ],
+    "min_score_search": 30,
+    "pull_comments_from_top_n": 2
+  }
+}
