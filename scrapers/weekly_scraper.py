@@ -1,7 +1,7 @@
 """
-Weekly scraper: top posts of the week + top comments + cross-post patterns.
-Runs via GitHub Actions every Sunday at 00:00 UTC.
-Output: data/{category}/weekly/YYYY-MM-DD.json + data/{category}/latest_weekly.json
+Weekly scraper: top posts of the week + comments + cross-post patterns.
+Runs via GitHub Actions every Sunday at 01:00 UTC (06:30 IST).
+Requires: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET env vars.
 """
 
 import json
@@ -11,36 +11,39 @@ from datetime import datetime, timezone
 from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from scrapers.reddit_client import get_top_posts, get_post_comments
+from scrapers.reddit_client import get_reddit, get_top_posts, get_post_comments
 from processors.cleaner import clean_post, clean_comment
 
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "subreddits.json")
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
+STOPWORDS = {"about", "with", "this", "that", "from", "have", "will", "your", "their", "been", "what", "when", "which", "just", "there", "they", "been", "would", "could", "should"}
+
 
 def extract_patterns(posts: list[dict]) -> dict:
     words = Counter()
-    high_ratio = [p for p in posts if p.get("upvote_ratio", 0) >= 0.9]
-    controversial = [p for p in posts if p.get("upvote_ratio", 0) < 0.7]
-
     for post in posts:
         for word in post.get("title", "").lower().split():
-            if len(word) > 4:
+            if len(word) > 4 and word not in STOPWORDS:
                 words[word] += 1
 
-    top_keywords = [w for w, _ in words.most_common(15) if w not in {"about", "with", "this", "that", "from", "have", "will", "your", "their", "been", "what", "when", "which"}]
+    by_comments = sorted(posts, key=lambda x: x.get("num_comments", 0), reverse=True)
+    by_score = sorted(posts, key=lambda x: x.get("score", 0), reverse=True)
 
     return {
-        "top_keywords": top_keywords[:10],
-        "high_consensus_posts": len(high_ratio),
-        "controversial_posts": len(controversial),
+        "top_keywords": [w for w, _ in words.most_common(12)],
         "avg_score": int(sum(p.get("score", 0) for p in posts) / max(len(posts), 1)),
-        "most_discussed": sorted(posts, key=lambda x: x.get("num_comments", 0), reverse=True)[0].get("title") if posts else None,
-        "highest_scored": sorted(posts, key=lambda x: x.get("score", 0), reverse=True)[0].get("title") if posts else None,
+        "high_consensus": len([p for p in posts if p.get("upvote_ratio", 0) >= 0.92]),
+        "controversial": len([p for p in posts if p.get("upvote_ratio", 0) < 0.65]),
+        "most_discussed_title": by_comments[0].get("title") if by_comments else None,
+        "most_discussed_url": by_comments[0].get("url") if by_comments else None,
+        "highest_scored_title": by_score[0].get("title") if by_score else None,
+        "highest_scored_url": by_score[0].get("url") if by_score else None,
     }
 
 
 def run():
+    reddit = get_reddit()
     with open(CONFIG_PATH) as f:
         config = json.load(f)
 
@@ -52,28 +55,20 @@ def run():
 
         for subreddit in meta["subreddits"]:
             print(f"  -> r/{subreddit}")
-            raw_posts = get_top_posts(subreddit, time_filter="week", limit=meta["weekly_limit"])
+            raw_posts = get_top_posts(reddit, subreddit, time_filter="week", limit=meta["weekly_limit"])
 
-            for raw in raw_posts:
-                post_data = raw.get("data", {})
-                post_id = post_data.get("id", "")
-                cleaned = clean_post(raw, include_comments=False)
-
-                if not cleaned or cleaned.get("score", 0) < 20:
+            for post in raw_posts:
+                if post.score < 20:
                     continue
 
-                if post_data.get("num_comments", 0) > 5:
-                    print(f"    +-- fetching comments for: {cleaned.get('title', '')[:60]}")
-                    raw_comments = get_post_comments(subreddit, post_id, limit=meta["weekly_comments"])
-                    cleaned["top_comments"] = [
-                        c for c in [clean_comment(rc) for rc in raw_comments if rc.get("kind") == "t1"]
-                        if c
-                    ][:5]
+                raw_comments = []
+                if post.num_comments > 5:
+                    print(f"    +-- comments: {post.title[:55]}")
+                    raw_comments = get_post_comments(post, limit=meta["weekly_comments"])
 
-                posts.append(cleaned)
+                posts.append(clean_post(post, comments=raw_comments if raw_comments else None))
 
         posts.sort(key=lambda x: x.get("score", 0), reverse=True)
-        patterns = extract_patterns(posts)
 
         output = {
             "category": meta["label"],
@@ -81,7 +76,7 @@ def run():
             "week_ending": today,
             "total_posts": len(posts),
             "subreddits_scraped": [f"r/{s}" for s in meta["subreddits"]],
-            "patterns": patterns,
+            "patterns": extract_patterns(posts),
             "posts": posts,
         }
 
@@ -96,7 +91,7 @@ def run():
         with open(latest_file, "w", encoding="utf-8") as f:
             json.dump(output, f, indent=2, ensure_ascii=False)
 
-        print(f"  OK {len(posts)} posts + patterns saved -> {date_file}")
+        print(f"  OK {len(posts)} posts saved -> {date_file}")
 
     print("\n[DONE] Weekly scrape complete.")
 

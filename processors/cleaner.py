@@ -1,53 +1,51 @@
 """
-Strips Reddit's verbose JSON (~500 tokens/post) down to ~80 tokens/post.
-Keeps everything needed for Claude analysis + full citations.
+Converts PRAW Submission/Comment objects to lean dicts (~80 tokens/post).
+Every item includes a direct Reddit URL for citation.
 """
 
-BASE_URL = "https://www.reddit.com"
+BASE = "https://www.reddit.com"
 
 
-def clean_post(raw: dict, include_comments: bool = False, raw_comments: list = None) -> dict:
-    d = raw.get("data", {})
-    if not d:
-        return {}
+def clean_post(post, comments: list = None) -> dict:
+    try:
+        author = post.author.name if post.author else "[deleted]"
+    except Exception:
+        author = "[deleted]"
 
-    post_id = d.get("id", "")
-    subreddit = d.get("subreddit", "")
-    permalink = d.get("permalink", "")
-
-    post = {
-        "id": post_id,
-        "title": d.get("title", "").strip(),
-        "subreddit": f"r/{subreddit}",
-        "author": d.get("author", "[deleted]"),
-        "score": d.get("score", 0),
-        "upvote_ratio": d.get("upvote_ratio", 0),
-        "num_comments": d.get("num_comments", 0),
-        "url": f"{BASE_URL}{permalink}",
-        "external_url": d.get("url", "") if not d.get("is_self") else None,
-        "body": _truncate(d.get("selftext", ""), 400),
-        "flair": d.get("link_flair_text", None),
-        "created_utc": int(d.get("created_utc", 0)),
+    out = {
+        "id": post.id,
+        "title": post.title.strip(),
+        "subreddit": f"r/{post.subreddit.display_name}",
+        "author": author,
+        "score": post.score,
+        "upvote_ratio": round(post.upvote_ratio, 2),
+        "num_comments": post.num_comments,
+        "url": f"{BASE}{post.permalink}",
+        "flair": post.link_flair_text or None,
+        "body": _truncate(post.selftext, 400) if post.is_self else None,
+        "external_url": post.url if not post.is_self else None,
+        "created_utc": int(post.created_utc),
     }
 
-    if include_comments and raw_comments:
-        post["top_comments"] = [clean_comment(c) for c in raw_comments if c.get("kind") == "t1"][:5]
+    if comments:
+        out["top_comments"] = [c for c in [clean_comment(c) for c in comments] if c][:5]
 
-    return {k: v for k, v in post.items() if v is not None and v != ""}
+    return {k: v for k, v in out.items() if v is not None and v != ""}
 
 
-def clean_comment(raw: dict) -> dict:
-    d = raw.get("data", {})
-    if not d or d.get("body") in ("[deleted]", "[removed]", None):
+def clean_comment(comment) -> dict:
+    try:
+        if not hasattr(comment, "body") or comment.body in ("[deleted]", "[removed]"):
+            return {}
+        author = comment.author.name if comment.author else "[deleted]"
+        return {
+            "author": author,
+            "score": comment.score,
+            "body": _truncate(comment.body, 300),
+            "url": f"{BASE}{comment.permalink}",
+        }
+    except Exception:
         return {}
-
-    permalink = d.get("permalink", "")
-    return {
-        "author": d.get("author", "[deleted]"),
-        "score": d.get("score", 0),
-        "body": _truncate(d.get("body", ""), 300),
-        "url": f"{BASE_URL}{permalink}" if permalink else None,
-    }
 
 
 def _truncate(text: str, max_chars: int) -> str:

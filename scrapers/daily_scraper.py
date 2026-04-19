@@ -1,7 +1,7 @@
 """
-Daily scraper: top posts only (no comments), time_filter=day.
+Daily scraper: top posts of the day, no comments.
 Runs via GitHub Actions every day at 05:30 IST (00:00 UTC).
-Output: data/{category}/daily/YYYY-MM-DD.json + data/{category}/latest_daily.json
+Requires: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET env vars.
 """
 
 import json
@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-from scrapers.reddit_client import get_top_posts
+from scrapers.reddit_client import get_reddit, get_top_posts
 from processors.cleaner import clean_post
 
 CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config", "subreddits.json")
@@ -18,6 +18,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 
 def run():
+    reddit = get_reddit()
     with open(CONFIG_PATH) as f:
         config = json.load(f)
 
@@ -29,11 +30,10 @@ def run():
 
         for subreddit in meta["subreddits"]:
             print(f"  -> r/{subreddit}")
-            raw_posts = get_top_posts(subreddit, time_filter="day", limit=meta["daily_limit"])
-            for raw in raw_posts:
-                cleaned = clean_post(raw)
-                if cleaned and cleaned.get("score", 0) >= 10:
-                    posts.append(cleaned)
+            raw_posts = get_top_posts(reddit, subreddit, time_filter="day", limit=meta["daily_limit"])
+            for post in raw_posts:
+                if post.score >= 10:
+                    posts.append(clean_post(post))
 
         posts.sort(key=lambda x: x.get("score", 0), reverse=True)
 

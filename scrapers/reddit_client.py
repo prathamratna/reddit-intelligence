@@ -1,43 +1,28 @@
-import httpx
-import time
-import random
+import praw
+import os
 import sys
 
-BASE_URL = "https://www.reddit.com"
-HEADERS = {
-    "User-Agent": "reddit-intelligence/1.0 (open-source research tool; github.com/pratham)"
-}
+
+def get_reddit() -> praw.Reddit:
+    return praw.Reddit(
+        client_id=os.environ["REDDIT_CLIENT_ID"],
+        client_secret=os.environ["REDDIT_CLIENT_SECRET"],
+        user_agent="reddit-intelligence/1.0 (open-source research tool)",
+    )
 
 
-def _fetch(url: str, params: dict = None) -> dict:
-    time.sleep(random.uniform(2.0, 4.0))  # Reddit .json rate limit: ~10 req/min
+def get_top_posts(reddit: praw.Reddit, subreddit: str, time_filter: str = "day", limit: int = 10):
     try:
-        response = httpx.get(url, headers=HEADERS, params=params, timeout=30, follow_redirects=True)
-        response.raise_for_status()
-        return response.json()
-    except httpx.HTTPStatusError as e:
-        print(f"[ERROR] {url} → HTTP {e.response.status_code}", file=sys.stderr)
-        return {}
+        return list(reddit.subreddit(subreddit).top(time_filter=time_filter, limit=limit))
     except Exception as e:
-        print(f"[ERROR] {url} → {e}", file=sys.stderr)
-        return {}
-
-
-def get_top_posts(subreddit: str, time_filter: str = "day", limit: int = 10) -> list[dict]:
-    url = f"{BASE_URL}/r/{subreddit}/top.json"
-    data = _fetch(url, params={"t": time_filter, "limit": limit})
-    return data.get("data", {}).get("children", [])
-
-
-def get_post_comments(subreddit: str, post_id: str, limit: int = 5) -> list[dict]:
-    url = f"{BASE_URL}/r/{subreddit}/comments/{post_id}.json"
-    data = _fetch(url, params={"limit": limit, "depth": 2, "sort": "top"})
-    if not data or not isinstance(data, list) or len(data) < 2:
+        print(f"[ERROR] r/{subreddit}: {e}", file=sys.stderr)
         return []
-    return data[1].get("data", {}).get("children", [])
 
 
-def get_subreddit_info(subreddit: str) -> dict:
-    url = f"{BASE_URL}/r/{subreddit}/about.json"
-    data = _fetch(url)
-    return data.get("data", {})
+def get_post_comments(post, limit: int = 5) -> list:
+    try:
+        post.comments.replace_more(limit=0)
+        return post.comments.list()[:limit]
+    except Exception as e:
+        print(f"[ERROR] comments for {post.id}: {e}", file=sys.stderr)
+        return []
