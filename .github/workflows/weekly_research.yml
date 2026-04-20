@@ -25,8 +25,6 @@ jobs:
         run: pip install httpx
 
       - name: Run weekly research scraper
-        env:
-          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
         run: python scrapers/weekly_scraper.py
 
       - name: Commit data and digests to repo

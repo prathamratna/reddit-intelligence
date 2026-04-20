@@ -78,28 +78,13 @@ digests/
 
 ## Setup (fork this repo)
 
-### 1. Connect Reddit to Composio
-
-Go to [app.composio.dev](https://app.composio.dev) → Apps → Reddit → Connect your account.
-
-### 2. Get your Composio API key
-
-[app.composio.dev](https://app.composio.dev) → Settings → API Keys → copy.
-
-### 3. Add GitHub secret
-
-Your repo → Settings → Secrets and variables → Actions → New repository secret:
-
-```
-Name:  COMPOSIO_API_KEY
-Value: your-composio-api-key
-```
-
-That's it. `GITHUB_TOKEN` is automatic — no other secrets needed.
-
-### 4. Enable GitHub Issues
+### 1. Enable GitHub Issues
 
 Your repo → Settings → Features → check **Issues**.
+
+### 2. That's it.
+
+No secrets needed. `GITHUB_TOKEN` is automatic. The pipeline uses Reddit's free public JSON API — no OAuth, no API keys, no Composio.
 
 GitHub Actions will now:
 - Create labeled Issues automatically (`daily-digest`, `weekly-research`)
@@ -122,9 +107,7 @@ Both workflows also have a **manual trigger** (Actions tab → Run workflow).
 ## Local run
 
 ```bash
-pip install composio-core
-
-export COMPOSIO_API_KEY=your-key-here
+pip install httpx
 
 python scrapers/daily_scraper.py
 python scrapers/weekly_scraper.py
