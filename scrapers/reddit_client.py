@@ -2,6 +2,12 @@
 Reddit client via Composio SDK.
 No raw RSS, no PRAW, no IP blocks — Composio handles OAuth.
 Requires: COMPOSIO_API_KEY environment variable.
+
+Key design decisions:
+- Single toolset instance (no repeated cache-refresh spam)
+- connected_account_id="reddit_carid-smit" passed per-call (bypasses entity lookup)
+- Entity lookup (entity_id) is intentionally NOT used — it caused HTTP 500 on every call
+  because "carid-smit" is a connection name, not a Composio entity ID
 """
 
 import os
@@ -11,10 +17,13 @@ import random
 
 from composio import ComposioToolSet
 
-# Single toolset instance — avoids re-initialising (and cache-refresh spam) per call
+# The confirmed connection ID from app.composio.dev → Reddit → Connected Accounts
+_REDDIT_CONNECTION_ID = "reddit_carid-smit"
+
+# Single toolset instance — avoids repeated SDK init and cache-refresh churn
 _TOOLSET_INSTANCE: ComposioToolSet | None = None
 
-# Retry config: 3 attempts, exponential backoff 3s → 6s → 12s
+# Retry config for transient errors
 _MAX_RETRIES = 3
 _RETRY_BASE_SECONDS = 3
 
@@ -25,38 +34,51 @@ def _toolset() -> ComposioToolSet:
         api_key = os.environ.get("COMPOSIO_API_KEY")
         if not api_key:
             raise EnvironmentError(
-                "COMPOSIO_API_KEY not set. Add it as a GitHub secret or local env var."
+                "COMPOSIO_API_KEY not set. Add it as a GitHub secret or local env var.\n"
+                "Get it from: app.composio.dev → Settings → API Keys"
             )
-        _TOOLSET_INSTANCE = ComposioToolSet(api_key=api_key, entity_id="carid-smit")
+        # No entity_id — we pass connected_account_id per-call instead
+        _TOOLSET_INSTANCE = ComposioToolSet(api_key=api_key)
     return _TOOLSET_INSTANCE
 
 
 def _execute(action: str, params: dict) -> dict:
     """
-    Execute a Composio action with automatic retry on HTTP 500.
-    Transient Composio server errors (cache refresh, rate limits) resolve on retry.
+    Execute a Composio action with connected_account_id and automatic retry.
+    Passing connected_account_id directly skips entity-lookup (which caused HTTP 500).
     """
     last_exc = None
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            result = _toolset().execute_action(action=action, params=params)
-            # Composio sometimes returns success=False inside the response body
-            if isinstance(result, dict) and result.get("successful") is False:
-                error_msg = result.get("error") or "unknown Composio error"
-                raise RuntimeError(f"Composio returned failure: {error_msg}")
+            result = _toolset().execute_action(
+                action=action,
+                params=params,
+                connected_account_id=_REDDIT_CONNECTION_ID,
+            )
+            # SDK returns {successfull: False, error: "..."} after exhausting its retries
+            # Note: Composio SDK typos "successfull" with double-l
+            if isinstance(result, dict) and (
+                result.get("successfull") is False
+                or result.get("successful") is False
+            ):
+                error_msg = result.get("error") or "Composio returned failure"
+                raise RuntimeError(error_msg)
             return result
         except Exception as e:
             last_exc = e
             if attempt < _MAX_RETRIES:
                 wait = _RETRY_BASE_SECONDS * (2 ** (attempt - 1))  # 3s, 6s
-                print(f"  [RETRY {attempt}/{_MAX_RETRIES}] {action} failed: {e} — retrying in {wait}s", file=sys.stderr)
+                print(
+                    f"  [RETRY {attempt}/{_MAX_RETRIES}] {action} → {e} — retrying in {wait}s",
+                    file=sys.stderr,
+                )
                 time.sleep(wait)
-            else:
-                raise last_exc
+
+    raise last_exc
 
 
 def _throttle():
-    """Polite delay between subreddit calls to avoid rate limits."""
+    """Polite delay between subreddit calls to stay within rate limits."""
     time.sleep(random.uniform(1.5, 2.5))
 
 
@@ -67,11 +89,10 @@ def _throttle():
 def _parse_listing(result: dict, fallback_subreddit: str | None) -> list[dict]:
     """
     Navigate Composio's nested response structure to extract post dicts.
-    Handles both flat and double-nested data keys defensively.
+    Composio wraps Reddit's response: result → data → data → children
     """
     try:
         data = (result or {}).get("data", {})
-        # Composio wraps: result -> data -> data -> children
         if isinstance(data.get("data"), dict):
             data = data["data"]
         children = data.get("children") or []
@@ -135,7 +156,7 @@ def get_top_posts(subreddit: str, time_filter: str = "day", limit: int = 10) -> 
         )
         return _parse_listing(result, subreddit)
     except Exception as e:
-        print(f"[ERROR] get_top_posts r/{subreddit}: Skipping after {_MAX_RETRIES} retries — {e}", file=sys.stderr)
+        print(f"[ERROR] get_top_posts r/{subreddit}: {e}", file=sys.stderr)
         return []
 
 
@@ -149,7 +170,7 @@ def search_posts(query: str, limit: int = 25, sort: str = "top") -> list[dict]:
         )
         return _parse_listing(result, fallback_subreddit=None)
     except Exception as e:
-        print(f"[ERROR] search '{query}': Skipping after {_MAX_RETRIES} retries — {e}", file=sys.stderr)
+        print(f"[ERROR] search '{query}': {e}", file=sys.stderr)
         return []
 
 
@@ -163,5 +184,5 @@ def get_post_comments(article_id: str, limit: int = 5) -> list[str]:
         )
         return _parse_comments(result, limit)
     except Exception as e:
-        print(f"[ERROR] comments for {article_id}: Skipping — {e}", file=sys.stderr)
+        print(f"[ERROR] comments for {article_id}: {e}", file=sys.stderr)
         return []
