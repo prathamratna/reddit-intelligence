@@ -27,7 +27,7 @@ def _toolset() -> ComposioToolSet:
             raise EnvironmentError(
                 "COMPOSIO_API_KEY not set. Add it as a GitHub secret or local env var."
             )
-        _TOOLSET_INSTANCE = ComposioToolSet(api_key=api_key)
+        _TOOLSET_INSTANCE = ComposioToolSet(api_key=api_key, entity_id="carid-smit")
     return _TOOLSET_INSTANCE
 
 
