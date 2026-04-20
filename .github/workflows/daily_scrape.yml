@@ -24,6 +24,29 @@ jobs:
       - name: Install dependencies
         run: pip install httpx
 
+      - name: Resolve Composio Reddit account UUID
+        env:
+          COMPOSIO_API_KEY: ${{ secrets.COMPOSIO_API_KEY }}
+        run: |
+          python3 - << 'PYEOF'
+          import os, httpx, json
+          key = os.environ.get('COMPOSIO_API_KEY', '')
+          if not key:
+              print("COMPOSIO_API_KEY not set — skipping")
+          else:
+              for url, params in [
+                  ('https://backend.composio.dev/api/v1/connectedAccounts', {'appNames': 'reddit', 'status': 'ACTIVE'}),
+                  ('https://backend.composio.dev/api/v3/connected_accounts', {'appName': 'reddit'}),
+              ]:
+                  try:
+                      r = httpx.get(url, headers={'x-api-key': key}, params=params, timeout=10)
+                      print(f"{url} → HTTP {r.status_code}")
+                      data = r.json()
+                      print(json.dumps(data, indent=2)[:800])
+                  except Exception as e:
+                      print(f"{url} → ERROR: {e}")
+          PYEOF
+
       - name: Run daily scraper
         run: python scrapers/daily_scraper.py
 
