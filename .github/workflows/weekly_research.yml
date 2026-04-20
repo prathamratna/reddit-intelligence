@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install composio-core
+        run: pip install httpx
 
       - name: Run weekly research scraper
         env:
